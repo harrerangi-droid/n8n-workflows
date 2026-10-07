@@ -1,0 +1,203 @@
+{
+  "name": "RAG - Dateien lesen + Simple Vector Store + lokale KI-Zusammenfassung",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        176
+      ],
+      "id": "c00fa5ba-5f41-4b8c-80bb-28a9b4de66fe",
+      "name": "Manueller Trigger"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/.n8n-files/test_dokument.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        96,
+        176
+      ],
+      "id": "43e374be-c5fc-41c1-9f3c-d87fdcc71fb9",
+      "name": "Dateien von der Festplatte lesen",
+      "notes": "Testpfad. Falls ein anderer Pfad verwendet wird, hier anpassen."
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        48
+      ],
+      "id": "a22d82b5-43d3-4819-bd68-0fd0f6e8b509",
+      "name": "Einfacher Vektorspeicher"
+    },
+    {
+      "parameters": {
+        "model": "qwen3-embedding:0.6b"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        288,
+        352
+      ],
+      "id": "0f29869d-7471-4a95-a31e-71669f002c5a",
+      "name": "Ollama Einbettungen",
+      "credentials": {
+        "ollamaApi": {
+          "id": "vbRR9EoIvWcjl77T",
+          "name": "Ollama account"
+        }
+      },
+      "notes": "Ollama-Credential nach Import auswählen. Basis-URL im lokalen Docker-Setup: http://host.docker.internal:11434"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        352
+      ],
+      "id": "e0328618-6051-4c69-aec5-b5c00b9f9fd2",
+      "name": "Standard-Datenlader"
+    },
+    {
+      "parameters": {
+        "operationMode": "nodeInputBinary",
+        "options": {
+          "binaryDataKey": "data",
+          "summarizationMethodAndPrompts": {
+            "values": {
+              "combineMapPrompt": "Du fasst interne Unternehmensdokumente sachlich zusammen.\n\nNutze ausschließlich Informationen aus dem folgenden Text.\nErfinde keine Fakten.\n\nWenn eine Information nicht eindeutig aus dem Dokument hervorgeht,\nschreibe:\n\"Nicht eindeutig aus dem Dokument hervorgehend.\"\n\nErstelle folgende Struktur:\n\nKernaussagen:\n- ...\n\nWichtige Zahlen und Fristen:\n- ...\n\nOffene Punkte oder Risiken:\n- ...\n\nText:\n{text}",
+              "prompt": "Führe die folgenden Teilzusammenfassungen zu einer kompakten\nGesamtzusammenfassung zusammen.\n\nVerwende ausschließlich Informationen aus den Teilzusammenfassungen.\nErfinde keine zusätzlichen Fakten.\nVermeide Wiederholungen.\nKennzeichne Unsicherheiten deutlich.\n\nAusgabeformat:\n\nKurzfassung:\n...\n\nWichtige Punkte:\n- ...\n\nFristen/Zahlen:\n- ...\n\nOffene Punkte/Risiken:\n- ...\n\nTeilzusammenfassungen:\n{text}"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainSummarization",
+      "typeVersion": 2.1,
+      "position": [
+        688,
+        176
+      ],
+      "id": "a997db76-d89a-461f-863d-8db044211662",
+      "name": "KI-Zusammenfassung"
+    },
+    {
+      "parameters": {
+        "model": "qwen3:1.7b",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        848,
+        432
+      ],
+      "id": "23ac96c9-76d6-4fe5-9d1e-24e8241c8045",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "vbRR9EoIvWcjl77T",
+          "name": "Ollama account"
+        }
+      },
+      "notes": "Ollama-Credential nach Import auswählen. Modell vorab mit 'ollama pull qwen3:1.7b' installieren."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manueller Trigger": {
+      "main": [
+        [
+          {
+            "node": "Dateien von der Festplatte lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dateien von der Festplatte lesen": {
+      "main": [
+        [
+          {
+            "node": "Einfacher Vektorspeicher",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "KI-Zusammenfassung",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Einbettungen": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Einfacher Vektorspeicher",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Standard-Datenlader": {
+      "ai_document": [
+        [
+          {
+            "node": "Einfacher Vektorspeicher",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "KI-Zusammenfassung",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "30e630a2-2d28-4d8c-9840-d84ccdce1663",
+  "meta": {
+    "instanceId": "7a84917f50f01eb8218f1cc03e05b9eed0c703c56bd5f7f80c96f05abbdbff12"
+  },
+  "nodeGroups": [],
+  "id": "mkubMeaHeY6bRFA5",
+  "tags": []
+}
