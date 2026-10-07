@@ -217,23 +217,3 @@ Workflow:
 
 Keine echten Passwörter, API-Schlüssel oder Credential-IDs werden im Repository gespeichert.
 
-## Abgabe
-
-Enthalten:
-- `workflow-erweitert.json`
-- `README.md`
-- `TESTNACHWEIS.md`
-- `test_dokument.txt`
-- `docs/workflow-erfolgreich.png`
-- `docs/ki-zusammenfassung-testergebnis.png`
-- `docs/workflow-diagramm.png`
-
-## Quellenbasis
-
-- bereitgestellte Kursunterlage: **RAG mit dem Simple Vector Store in n8n**
-- n8n Dokumentation zu Simple Vector Store, Summarization Chain und Ollama Chat Model
-- Ollama Model Library
-- DSGVO / EUR-Lex
-- EU AI Act / EUR-Lex
-- § 2 UrhG
-- § 87 BetrVG
